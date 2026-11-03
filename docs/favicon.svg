@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>Thumb Potato</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E2027"/>
+      <stop offset="1" stop-color="#0B0C10"/>
+    </linearGradient>
+    <linearGradient id="volt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#CDFA62"/>
+      <stop offset="1" stop-color="#93D11E"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <g transform="translate(512 528) scale(1.02) translate(-512 -591)">
+    <!-- controller body -->
+    <path fill="url(#volt)" d="M318 336 H706 C812 336 880 404 902 520 L940 714 C956 796 902 846 842 846 C796 846 764 820 742 780 L700 700 H324 L282 780 C260 820 228 846 182 846 C122 846 68 796 84 714 L122 520 C144 404 212 336 318 336 Z"/>
+    <!-- potato thumbstick -->
+    <g transform="rotate(-14 330 520)">
+      <ellipse cx="330" cy="520" rx="96" ry="78" fill="#0E1014"/>
+      <ellipse cx="322" cy="512" rx="64" ry="50" fill="#2A2E36"/>
+    </g>
+    <!-- face buttons -->
+    <circle cx="700" cy="452" r="38" fill="#0E1014"/>
+    <circle cx="700" cy="588" r="38" fill="#0E1014"/>
+    <circle cx="632" cy="520" r="38" fill="#0E1014"/>
+    <circle cx="768" cy="520" r="38" fill="#0E1014"/>
+    <!-- later tab -->
+    <path d="M478 404 H546 V492 L512 470 L478 492 Z" fill="#0E1014"/>
+  </g>
+</svg>

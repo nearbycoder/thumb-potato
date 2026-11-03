@@ -47,9 +47,9 @@ PLATFORMS = [
     ("ps4", "PlayStation 4", ["Q5014725"], 1),
     ("xbox-series", "Xbox Series X|S", ["Q98973368"], 1),
     ("xbox-one", "Xbox One", ["Q13361286"], 1),
-    ("pc", "PC", ["Q1406"], 3),
-    ("mac", "Mac", ["Q14116"], 2),
-    ("mobile", "iOS & Android", ["Q48493", "Q94"], 2),
+    ("pc", "PC", ["Q1406"], 5),
+    ("mac", "Mac", ["Q14116"], 3),
+    ("mobile", "iOS & Android", ["Q48493", "Q94"], 3),
 ]
 
 # Wikidata genre labels → the fixed genre list the apps filter on (SPEC.md).
@@ -80,14 +80,14 @@ QUERY = """
 SELECT ?game ?label ?article ?links (GROUP_CONCAT(DISTINCT CONCAT(STR(?pd), "@", STR(?pp)); separator="|") AS ?pdates)
   (GROUP_CONCAT(DISTINCT CONCAT(STR(?ad), "@", STR(?ap)); separator="|") AS ?adates) (SAMPLE(?steam) AS ?steamId)
   (GROUP_CONCAT(DISTINCT ?genreLabel; separator="|") AS ?genres)
-  (SAMPLE(?devLabel) AS ?dev) (SAMPLE(?pubLabel) AS ?pub) (SAMPLE(?mc) AS ?meta)
+  (GROUP_CONCAT(DISTINCT ?devLabel; separator="|") AS ?devs) (GROUP_CONCAT(DISTINCT ?pubLabel; separator="|") AS ?pubs) (SAMPLE(?mc) AS ?meta)
 WHERE {
   ?game wdt:P31 wd:Q7889; wdt:P400 wd:%(platform)s; wikibase:sitelinks ?links.
   %(filter)s
   ?article schema:about ?game; schema:isPartOf <https://en.wikipedia.org/>.
   ?game rdfs:label ?label FILTER(LANG(?label) = "en")
-  OPTIONAL { ?game p:P577 ?st. ?st psv:P577 [wikibase:timeValue ?pd; wikibase:timePrecision ?pp]; pq:P400 wd:%(platform)s. }
-  OPTIONAL { ?game p:P577 ?ast. ?ast psv:P577 [wikibase:timeValue ?ad; wikibase:timePrecision ?ap]. }
+  OPTIONAL { ?game p:P577 ?st. ?st psv:P577 [wikibase:timeValue ?pd; wikibase:timePrecision ?pp]; pq:P400 wd:%(platform)s; wikibase:rank ?sr. FILTER(?sr != wikibase:DeprecatedRank) }
+  OPTIONAL { ?game p:P577 ?ast. ?ast psv:P577 [wikibase:timeValue ?ad; wikibase:timePrecision ?ap]; wikibase:rank ?ar. FILTER(?ar != wikibase:DeprecatedRank) }
   OPTIONAL { ?game wdt:P1733 ?steam. }
   OPTIONAL { ?game wdt:P136 ?genre. ?genre rdfs:label ?genreLabel FILTER(LANG(?genreLabel) = "en") }
   OPTIONAL { ?game wdt:P178 ?d. ?d rdfs:label ?devLabel FILTER(LANG(?devLabel) = "en") }
@@ -143,18 +143,37 @@ def earliest_date(values):
     Wikidata stores a year-only date as Jan 1, so the precision travels with it;
     precisions coarser than a year (decades) are ignored.
     """
-    best = None
+    dates = []
     for value in filter(None, (values or "").split("|")):
         stamp, _, precision = value.partition("@")
         if stamp.startswith("-") or precision not in PRECISION:
             continue
         try:
-            date = dt.date.fromisoformat(stamp[:10])
+            # Year/month precision may come as "2027-00-00"; make it parseable.
+            date = dt.date.fromisoformat(stamp[:10].replace("-00", "-01"))
         except ValueError:
             continue
-        if best is None or date < best[0] or (date == best[0] and int(precision) > int(best[1])):
-            best = (date, precision)
-    return (best[0], PRECISION[best[1]]) if best else (None, None)
+        dates.append((date, precision))
+
+    def covers(coarse, other):
+        # A "2023" or "May 2023" date is redundant next to an exact date inside it.
+        if coarse[1] == "9":
+            return other[0].year == coarse[0].year and other[1] > "9"
+        if coarse[1] == "10":
+            return other[0].year == coarse[0].year and other[0].month == coarse[0].month and other[1] == "11"
+        return False
+
+    dates = [d for d in dates if not any(covers(d, o) for o in dates)]
+    if not dates:
+        return None, None
+    best = min(dates, key=lambda d: (d[0], -int(d[1])))
+    return best[0], PRECISION[best[1]]
+
+
+def names(values, limit=2):
+    """Up to `limit` names from a "|"-joined list, shortest first (usually the main studio)."""
+    items = sorted({v for v in (values or "").split("|") if v}, key=lambda v: (len(v), v))
+    return ", ".join(items[:limit]) or None
 
 
 def parse_metacritic(value):
@@ -188,8 +207,8 @@ def platform_games(pid, wikidata_ids, min_links):
             "_date": date,
             "_precision": precision,
             "genres": normalize_genres([g for g in row.get("genres", "").split("|") if g]),
-            "dev": row.get("dev"),
-            "pub": row.get("pub"),
+            "dev": names(row.get("devs")),
+            "pub": names(row.get("pubs")),
             "wiki": wiki_title(row["article"]),
             "steam": int(steam) if steam and steam.isdigit() else None,
             "metacritic": parse_metacritic(row.get("meta")),
@@ -212,17 +231,27 @@ def wiki_details(titles):
     for entry in query.get("normalized", []) + query.get("redirects", []):
         alias[entry["to"]] = alias.get(entry["from"], entry["from"])
     out = {}
+    # A redirect into a section or an unrelated title (e.g. Witchbrook → Chucklefish)
+    # means the game has no article of its own; the target's intro and image are about something else.
+    def words(title):
+        return {w for w in re.findall(r"[a-z0-9]+", title.lower()) if len(w) > 2 and w != "video"}
+
+    for entry in query.get("redirects", []):
+        if entry.get("tofragment") or not words(entry["from"]) & words(entry["to"]):
+            out[alias.get(entry["from"], entry["from"]).replace(" ", "_")] = {"section": True}
     for page in query.get("pages", []):
         original = alias.get(page["title"], page["title"])
         # Map back through both normalization and redirects to the requested title.
         original = alias.get(original, original)
-        cover = page.get("thumbnail", {}).get("source")
-        if cover:
-            cover = cover.split("?", 1)[0]
+        thumb = page.get("thumbnail", {})
+        cover = thumb.get("source")
+        # Box art is portrait or square; wide images and SVGs are logos or screenshots.
+        is_logo = ".svg" in (cover or "").lower() or thumb.get("width", 0) > 1.15 * thumb.get("height", 1)
+        cover = cover.split("?", 1)[0] if cover and not is_logo else None
         summary = re.sub(r"\s+", " ", page.get("extract", "")).strip()
         if len(summary) > SUMMARY_CHARS:
             summary = summary[:SUMMARY_CHARS].rsplit(" ", 1)[0] + "…"
-        out[original.replace(" ", "_")] = {"cover": cover, "summary": summary}
+        out.setdefault(original.replace(" ", "_"), {"cover": cover, "summary": summary})
     return out
 
 
@@ -268,16 +297,26 @@ def main():
     by_platform = {}
     for pid, name, qids, min_links in PLATFORMS:
         print(f"{name}: querying Wikidata", file=sys.stderr)
-        games = platform_games(pid, qids, min_links)
+        try:
+            games = platform_games(pid, qids, min_links)
+        except RuntimeError as err:
+            # Keep last week's file for this platform rather than fail the whole run.
+            print(f"  {err}; keeping the existing {pid}.json", file=sys.stderr)
+            continue
         by_platform[pid] = rank(games, today)
         print(f"  {len(games)} games, keeping {len(by_platform[pid])}", file=sys.stderr)
         time.sleep(2)
 
     # A game's platforms are every platform list it made it into.
     platforms_of = {}
-    for pid, games in by_platform.items():
-        for g in games:
-            platforms_of.setdefault(g["id"], []).append(pid)
+    for pid, _, _, _ in PLATFORMS:
+        if pid in by_platform:
+            ids = [g["id"] for g in by_platform[pid]]
+        else:
+            with open(os.path.join(OUT, f"{pid}.json")) as f:
+                ids = [g["id"] for g in json.load(f)]
+        for qid in ids:
+            platforms_of.setdefault(qid, []).append(pid)
 
     titles = sorted({g["wiki"] for games in by_platform.values() for g in games})
     print(f"Wikipedia: {len(titles)} articles", file=sys.stderr)
@@ -298,6 +337,10 @@ def main():
 
     counts = {}
     for pid, name, _, _ in PLATFORMS:
+        if pid not in by_platform:
+            with open(os.path.join(OUT, f"{pid}.json")) as f:
+                counts[pid] = len(json.load(f))
+            continue
         out = []
         for g in by_platform[pid]:
             extra = details.get(g["wiki"], {})
@@ -315,7 +358,7 @@ def main():
                 "hero": art.get("hero"),
                 "deck": art.get("deck"),
                 "summary": extra.get("summary") or None,
-                "wiki": g["wiki"],
+                "wiki": None if extra.get("section") else g["wiki"],
                 "steam": g["steam"],
                 "metacritic": g["metacritic"],
                 "pop": g["pop"],
