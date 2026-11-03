@@ -291,6 +291,20 @@ def rank(games, today):
     return keep
 
 
+def write_upcoming(today, limit=24):
+    """upcoming.json: the soonest exact-date releases across platforms, for the website."""
+    games = {}
+    for pid, _, _, _ in PLATFORMS:
+        with open(os.path.join(OUT, f"{pid}.json")) as f:
+            for g in json.load(f):
+                if g.get("date", "") > today.isoformat() and "datePrecision" not in g and (g.get("art") or g.get("cover")):
+                    games[g["id"]] = g
+    soonest = sorted(games.values(), key=lambda g: (g["date"], -g["pop"]))[:limit]
+    keep = ("id", "name", "date", "cover", "art", "platforms", "genres")
+    with open(os.path.join(OUT, "upcoming.json"), "w") as f:
+        json.dump([{k: g[k] for k in keep if k in g} for g in soonest], f, ensure_ascii=False, separators=(",", ":"))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     today = dt.date.today()
@@ -371,6 +385,7 @@ def main():
         with_cover = sum(1 for g in out if "cover" in g or "art" in g)
         print(f"{name}: wrote {len(out)} ({with_cover} with box art)", file=sys.stderr)
 
+    write_upcoming(today)
     index = {"updated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "platforms": counts}
     with open(os.path.join(OUT, "index.json"), "w") as f:
         json.dump(index, f, indent=1)
