@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E2027"/>
+      <stop offset="1" stop-color="#0B0C10"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.34" r="0.62">
+      <stop offset="0" stop-color="#B8F23D" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#B8F23D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="volt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#CDFA62"/>
+      <stop offset="1" stop-color="#93D11E"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="28"/>
+      <feOffset dy="26" result="b"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <g transform="translate(512 528) scale(0.86) translate(-512 -591)">
+  <g filter="url(#shadow)">
+    <!-- controller body: a wide pill with two grips -->
+    <path fill="url(#volt)" d="M318 336 H706 C812 336 880 404 902 520 L940 714 C956 796 902 846 842 846 C796 846 764 820 742 780 L700 700 H324 L282 780 C260 820 228 846 182 846 C122 846 68 796 84 714 L122 520 C144 404 212 336 318 336 Z"/>
+  </g>
+  <!-- potato thumbstick (left) -->
+  <g transform="rotate(-14 330 520)">
+    <ellipse cx="330" cy="520" rx="96" ry="78" fill="#0E1014"/>
+    <ellipse cx="322" cy="512" rx="64" ry="50" fill="#2A2E36"/>
+    <circle cx="298" cy="500" r="7" fill="#0E1014"/>
+    <circle cx="340" cy="526" r="6" fill="#0E1014"/>
+    <circle cx="318" cy="534" r="5" fill="#0E1014"/>
+  </g>
+  <!-- face buttons (right) -->
+  <circle cx="700" cy="452" r="34" fill="#0E1014"/>
+  <circle cx="700" cy="588" r="34" fill="#0E1014"/>
+  <circle cx="632" cy="520" r="34" fill="#0E1014"/>
+  <circle cx="768" cy="520" r="34" fill="#0E1014"/>
+  <!-- center: later/bookmark tab -->
+  <path d="M482 408 H542 V488 L512 468 L482 488 Z" fill="#0E1014"/>
+  </g>
+</svg>
