@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import java.io.File
 
-/** One record of `catalog/v1/<platform>.json`, built weekly by scripts/build_catalog.py. */
+/** One record of `catalog/v1/<platform>.json`, built daily by scripts/build_catalog.py. */
 @Serializable
 data class CatalogRecord(
     val id: String,

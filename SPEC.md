@@ -78,7 +78,7 @@ Map Steam genres/tags and RAWG genres onto this list by name (e.g. "Role-playing
 
 ### Key-less (default)
 
-1. **Catalog** — `https://nearbycoder.github.io/thumb-potato/catalog/v1/<platform>.json`, one per platform, plus `index.json` (`{"updated": "...", "platforms": {"switch": 1200, ...}}`). Built weekly by `scripts/build_catalog.py` from Wikidata + Wikipedia + Steam. Each file is a JSON array sorted by popularity:
+1. **Catalog** — `https://nearbycoder.github.io/thumb-potato/catalog/v1/<platform>.json`, one per platform, plus `index.json` (`{"updated": "...", "platforms": {"switch": 1200, ...}}`). Built daily by `scripts/build_catalog.py` from Wikidata + Wikipedia + Steam. Each file is a JSON array sorted by popularity:
 
    ```json
    {"id":"Q64577191","name":"The Legend of Zelda: Tears of the Kingdom","date":"2023-05-12",

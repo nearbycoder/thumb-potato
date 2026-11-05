@@ -148,7 +148,7 @@ fun SettingsScreen(actions: NavActions) {
             item(key = "data") {
                 Section(
                     "Data Sources",
-                    footer = "The catalog is rebuilt weekly from Wikidata, Wikipedia and Steam. A free RAWG key is optional: with one, platform pages, filters and search use RAWG's full database.",
+                    footer = "The catalog is rebuilt daily from Wikidata, Wikipedia and Steam. A free RAWG key is optional: with one, platform pages, filters and search use RAWG's full database.",
                 ) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Box(Modifier.size(8.dp).clip(CircleShape).background(if (settings.hasRawg) colors.success else colors.accent))

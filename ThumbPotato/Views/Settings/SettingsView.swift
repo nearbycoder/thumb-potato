@@ -97,7 +97,7 @@ struct SettingsView: View {
             } header: {
                 Text("Data Sources")
             } footer: {
-                Text("Optional. The key syncs to your other devices through iCloud. Without one, Thumb Potato uses its weekly catalog built from Wikidata, Wikipedia and Steam.")
+                Text("Optional. The key syncs to your other devices through iCloud. Without one, Thumb Potato uses its daily catalog built from Wikidata, Wikipedia and Steam.")
             }
 
             Section {

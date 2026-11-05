@@ -37,7 +37,7 @@ A "play later" companion for iPhone, iPad, iPhone Duo, Mac and Android. It finds
 
 Thumb Potato works out of the box with **no API key**:
 
-- **Game catalog** — about 4,700 games across nine platforms, built weekly by [`scripts/build_catalog.py`](scripts/build_catalog.py) (a GitHub Action) from **[Wikidata](https://www.wikidata.org)** (CC0: platforms, release dates, genres, studios, critic scores), **[Wikipedia](https://en.wikipedia.org)** (box art and descriptions; text CC BY-SA) and **Steam** (library art, hero backdrops, Steam Deck ratings). It's published at [`/catalog/v1/`](https://nearbycoder.github.io/thumb-potato/catalog/v1/index.json) on the website.
+- **Game catalog** — about 4,700 games across nine platforms, built daily by [`scripts/build_catalog.py`](scripts/build_catalog.py) (a GitHub Action) from **[Wikidata](https://www.wikidata.org)** (CC0: platforms, release dates, genres, studios, critic scores), **[Wikipedia](https://en.wikipedia.org)** (box art and descriptions; text CC BY-SA) and **Steam** (library art, hero backdrops, Steam Deck ratings). It's published at [`/catalog/v1/`](https://nearbycoder.github.io/thumb-potato/catalog/v1/index.json) on the website.
 - **Wikipedia** — full descriptions and search across every game with an article.
 - **Steam** — top sellers, new releases, screenshots, trailers, reviews and prices for PC and Mac games.
 - **[CheapShark](https://www.cheapshark.com)** — PC prices and deals across stores.
