@@ -1,11 +1,11 @@
 {
- "updated": "2026-11-16T09:39:08Z",
+ "updated": "2026-11-17T09:27:13Z",
  "platforms": {
-  "switch2": 208,
+  "switch2": 209,
   "switch": 1200,
-  "ps5": 1133,
+  "ps5": 1134,
   "ps4": 1200,
-  "xbox-series": 1148,
+  "xbox-series": 1149,
   "xbox-one": 1200,
   "pc": 1200,
   "mac": 1200,
